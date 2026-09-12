@@ -84,9 +84,15 @@ public class ShareLinkTest {
 
     @Test
     public void XとLINEのフォールバックURLを生成する() {
-        assertEquals("https://x.com/intent/tweet?text=Example+title&url=https%3A%2F%2Fexample.com%2Fpath",
+        assertEquals("https://x.com/intent/tweet?text=Example%20title&url=https%3A%2F%2Fexample.com%2Fpath",
                 ShareLink.buildXShareUrl("Example title", "https://example.com/path"));
         assertEquals("https://line.me/R/share?text=t%0Ahttps%3A%2F%2Fexample.com%2F",
                 ShareLink.buildLineShareUrl("t\nhttps://example.com/"));
+    }
+
+    @Test
+    public void Xアプリの投稿画面を開くディープリンクを生成する() {
+        assertEquals("twitter://post?message=Example%20title%0Ahttps%3A%2F%2Fexample.com%2Fpath",
+                ShareLink.buildXAppPostUrl("Example title\nhttps://example.com/path"));
     }
 }

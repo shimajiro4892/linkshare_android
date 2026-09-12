@@ -140,9 +140,10 @@ public final class ShareLink {
         }
     }
 
+    /** クエリ値のパーセントエンコード。フォーム形式の "+" ではなく "%20" を使う（アプリのディープリンクでも安全なため）。 */
     private static String encode(String value) {
         try {
-            return URLEncoder.encode(value, "UTF-8");
+            return URLEncoder.encode(value, "UTF-8").replace("+", "%20");
         } catch (UnsupportedEncodingException e) {
             return value;
         }
@@ -241,6 +242,14 @@ public final class ShareLink {
 
     public static String formatShareText(String title, String url) {
         return shareTitle(title) + "\n" + url;
+    }
+
+    /**
+     * X アプリの投稿画面を直接開くディープリンク。
+     * ACTION_SEND だと X 側の DM 用の受け口に振られることがあるため、投稿画面を明示する。
+     */
+    public static String buildXAppPostUrl(String text) {
+        return "twitter://post?message=" + encode(text);
     }
 
     /** X アプリが入っていないときの Web Intent。 */

@@ -58,7 +58,10 @@ public class ShareActivity extends Activity {
         String text = ShareLink.formatShareText(shared.title, description.shareUrl);
         switch (destination) {
             case X:
-                sendTo(PACKAGE_X, text, ShareLink.buildXShareUrl(shared.title, description.shareUrl));
+                // X アプリは ACTION_SEND を DM 側で受けることがあるので、投稿画面のディープリンクで開く。
+                if (!openInApp(PACKAGE_X, ShareLink.buildXAppPostUrl(text))) {
+                    openUrl(ShareLink.buildXShareUrl(shared.title, description.shareUrl));
+                }
                 break;
             case LINE:
                 sendTo(PACKAGE_LINE, text, ShareLink.buildLineShareUrl(text));
@@ -112,6 +115,18 @@ public class ShareActivity extends Activity {
             return true;
         } catch (ActivityNotFoundException e) {
             return fallbackUrl != null && openUrl(fallbackUrl);
+        }
+    }
+
+    /** 指定アプリで URL（ディープリンク）を開く。アプリが入っていなければ false。 */
+    private boolean openInApp(String packageName, String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    .setPackage(packageName)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            return true;
+        } catch (ActivityNotFoundException e) {
+            return false;
         }
     }
 
