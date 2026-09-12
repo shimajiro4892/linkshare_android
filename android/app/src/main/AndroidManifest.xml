@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Custom Tabs 対応ブラウザを見つけるため（Android 11 以降のパッケージ可視性） -->
+    <!-- 共有先アプリの有無を判定するため（Android 11 以降のパッケージ可視性） -->
     <queries>
-        <intent>
-            <action android:name="android.support.customtabs.action.CustomTabsService" />
-        </intent>
+        <package android:name="com.twitter.android" />
+        <package android:name="jp.naver.line.android" />
+        <package android:name="com.Slack" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
@@ -18,27 +18,71 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.LinkShare">
 
-        <!-- 画面を持たない。共有を受け取ったら PWA の URL をブラウザ（Custom Tab）で開いてすぐ終了する。 -->
+        <!-- 本体。画面はなく、起動元のエイリアスに応じて共有先へ振り分けてすぐ終了する。
+             アプリ一覧から開いたときは使い方ページをブラウザで開く。 -->
         <activity
             android:name=".ShareActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:label="@string/app_name"
-            android:noHistory="true"
-            android:theme="@style/Theme.LinkShare">
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-
-            <!-- アプリ一覧から開いたときは使い方ページ（PWA のトップ）を開く -->
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 共有メニューに並ぶ項目。1 項目 = 1 共有先。 -->
+        <activity-alias
+            android:name=".ShareToX"
+            android:exported="true"
+            android:icon="@mipmap/ic_share_x"
+            android:label="@string/share_to_x"
+            android:targetActivity=".ShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ShareToLine"
+            android:exported="true"
+            android:icon="@mipmap/ic_share_line"
+            android:label="@string/share_to_line"
+            android:targetActivity=".ShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ShareToSlack"
+            android:exported="true"
+            android:icon="@mipmap/ic_share_slack"
+            android:label="@string/share_to_slack"
+            android:targetActivity=".ShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".CopyShareText"
+            android:exported="true"
+            android:icon="@mipmap/ic_share_copy"
+            android:label="@string/copy_share_text"
+            android:targetActivity=".ShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

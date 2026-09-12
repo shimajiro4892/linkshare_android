@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.shimajiro4892.linkshare"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         // GitHub Actions では実行番号を versionCode にして、常に上書きインストールできるようにする。
         versionCode = (System.getenv("APK_VERSION_CODE") ?: "1").toInt()
@@ -50,5 +50,5 @@ android {
 }
 
 dependencies {
-    implementation("androidx.browser:browser:1.10.0")
+    testImplementation("junit:junit:4.13.2")
 }

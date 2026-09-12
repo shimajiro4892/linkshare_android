@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">リンクシェア</string>
+    <string name="share_to_x">X にシェア</string>
+    <string name="share_to_line">LINE にシェア</string>
+    <string name="share_to_slack">Slack にシェア</string>
+    <string name="copy_share_text">タイトルとURLをコピー</string>
+    <string name="copied">クリップボードにコピーしました</string>
+    <string name="copied_for_slack">コピーしました。Slack に貼り付けてください</string>
+    <string name="error_no_url">共有できるURLがありません</string>
     <string name="error_no_browser">ブラウザが見つかりません</string>
 </resources>

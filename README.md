@@ -29,11 +29,19 @@ rsync -a --delete --exclude .git --exclude .gradle --exclude build --exclude .DS
 
 共有メニューに Web アプリを登録できるのは Chrome だけです（Google のサーバーで WebAPK を生成する仕組みのため）。
 Brave・Firefox・Samsung Internet などでは、代わりに `android/` の小さなアプリをインストールします。
-このアプリは共有を受け取って PWA の画面を既定ブラウザの Custom Tab で開くだけで、ロジックはすべて PWA 側にあります。
+
+このアプリは画面を持ちません。共有メニューに次の 4 項目が直接並び、選んだ瞬間にそのアプリが開きます（タップは「共有 → 共有先」の 2 回だけ）。
+
+- **X にシェア** : X アプリの投稿画面に「タイトル改行URL」を入れて開く。未インストールなら Web の投稿画面。
+- **LINE にシェア** : LINE アプリの送信先選択を開く。未インストールなら `https://line.me/R/share`。
+- **Slack にシェア** : Slack アプリのチャンネル選択を開く。未インストールならコピーして Web 版を開く。
+- **タイトルとURLをコピー** : クリップボードにコピーするだけ。
+
+Amazon の URL 整理は拡張機能と同じルールで行います（`android/app/src/main/java/.../ShareLink.java`、JUnit テストつき）。
 
 1. 端末のブラウザで https://github.com/shimajiro4892/linkshare_android/releases/latest/download/linkshare-android.apk を開いてダウンロードする。
 2. ダウンロードした APK を開く。「この提供元のアプリを許可」を求められたら許可する（ブラウザまたはファイルアプリに対して）。
-3. インストール後、任意のアプリ（Brave など）の共有メニューに「リンクシェア」が出る。
+3. Brave などで共有ボタンを押すと、共有シートに上の 4 項目が出る。よく使う項目は長押しして「ピン留め」すると先頭に固定できる。
 
 アプリ一覧の「リンクシェア」を開くと、この使い方ページがブラウザで開きます。
 
@@ -76,8 +84,8 @@ Brave・Firefox・Samsung Internet などでは、代わりに `android/` の小
 - `manifest.webmanifest` : PWA マニフェスト。`share_target` で共有メニューに登録する。
 - `sw.js` : インストール要件を満たす最小の Service Worker。ネットワーク優先で、オフライン時だけキャッシュを返す。
 - `icons/` : `link share/generate_icons.py` で生成。
-- `android/` : Chrome 以外のブラウザ用の共有メニュー登録アプリ（Java、画面なし）。共有で受け取ったタイトルとURLを `?title=&text=` に載せて PWA を Custom Tab で開く。
-- `.github/workflows/build-apk.yml` : `android/` が変わると署名済み APK をビルドし、Release「latest」に添付する。
+- `android/` : Chrome 以外のブラウザ用の共有メニュー登録アプリ（Java、画面なし）。共有先ごとに activity-alias を 1 つ持ち、受け取ったテキストを整理して共有先アプリへ直接渡す。`ShareLink.java` は `share-utils.js` の、`SharedData.java` は `share-target.js` の移植で、それぞれ同じケースの JUnit テストがある。
+- `.github/workflows/build-apk.yml` : `android/` が変わると JUnit テストを実行し、署名済み APK をビルドして Release「latest」に添付する。
 - `.nojekyll` : GitHub Pages で Jekyll 処理を止め、ファイルをそのまま配信する。
 
 ## APK のビルド
@@ -89,7 +97,7 @@ Brave・Firefox・Samsung Internet などでは、代わりに `android/` の小
 # ローカルビルド
 source ~/.android/linkshare-release.env
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-(cd android && ./gradlew assembleRelease)
+(cd android && ./gradlew test assembleRelease)
 # → android/app/build/outputs/apk/release/app-release.apk
 
 # GitHub Actions で自動ビルドするための Secrets 登録（鍵を作り直したときも再実行）
@@ -117,4 +125,4 @@ python3 -m http.server 8765
 - 右クリックメニューはなく、共有メニューからのみ起動できる。
 - 共有元のアプリによってはタイトルが渡ってこない。その場合はタイトル欄に手で入力する。
 - 共有先を開いた後も PWA の画面は残る。戻るボタンで戻れる。
-- Chrome 以外のブラウザでは APK 経由になる。Custom Tab で開くので、閉じれば元のアプリに戻る。
+- Chrome 以外のブラウザでは APK 経由になる。共有先を選ぶ画面はなく、共有シートの項目がそのまま共有先になる。タイトルの手直しはできない。

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#2563EB</color>
+    <color name="ic_share_x_background">#000000</color>
+    <color name="ic_share_line_background">#06C755</color>
+    <color name="ic_share_slack_background">#4A154B</color>
+    <color name="ic_share_copy_background">#6B7280</color>
 </resources>
