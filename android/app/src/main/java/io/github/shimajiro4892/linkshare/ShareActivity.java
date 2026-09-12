@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * 共有メニューに「X」「LINE」「Slack」「コピー」を直接並べるための、画面を持たないアプリ。
@@ -58,10 +63,7 @@ public class ShareActivity extends Activity {
         String text = ShareLink.formatShareText(shared.title, description.shareUrl);
         switch (destination) {
             case X:
-                // X アプリは ACTION_SEND を DM 側で受けることがあるので、投稿画面のディープリンクで開く。
-                if (!openInApp(PACKAGE_X, ShareLink.buildXAppPostUrl(text))) {
-                    openUrl(ShareLink.buildXShareUrl(shared.title, description.shareUrl));
-                }
+                shareToX(shared.title, description.shareUrl, text);
                 break;
             case LINE:
                 sendTo(PACKAGE_LINE, text, ShareLink.buildLineShareUrl(text));
@@ -80,6 +82,50 @@ public class ShareActivity extends Activity {
             default:
                 break;
         }
+    }
+
+    /**
+     * X アプリは ACTION_SEND の受け口を投稿用と DM 用の 2 つ持ち、パッケージ指定だけだと DM 側に
+     * 振られる。投稿用（Composer）の受け口を探して明示指定する。見つからなければ公式の Web Intent
+     * （x.com/intent/tweet）を X アプリで開き、それも無理ならブラウザで開く。
+     * twitter://post?message= は投稿画面は開くが本文が入らなくなっている（2026年9月・実機確認）。
+     */
+    private void shareToX(String title, String url, String text) {
+        ComponentName composer = findXComposer();
+        if (composer != null) {
+            Intent send = new Intent(Intent.ACTION_SEND)
+                    .setType("text/plain")
+                    .setComponent(composer)
+                    .putExtra(Intent.EXTRA_TEXT, text)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            try {
+                startActivity(send);
+                return;
+            } catch (ActivityNotFoundException | SecurityException ignored) {
+                // 下の Web Intent にフォールバック
+            }
+        }
+        String webIntent = ShareLink.buildXShareUrl(title, url);
+        if (!openInApp(PACKAGE_X, webIntent)) {
+            openUrl(webIntent);
+        }
+    }
+
+    private ComponentName findXComposer() {
+        Intent probe = new Intent(Intent.ACTION_SEND).setType("text/plain").setPackage(PACKAGE_X);
+        List<ResolveInfo> handlers = getPackageManager().queryIntentActivities(probe, 0);
+        ResolveInfo fallback = null;
+        for (ResolveInfo handler : handlers) {
+            String name = handler.activityInfo.name.toLowerCase(Locale.ROOT);
+            if (name.contains("compos")) {
+                return new ComponentName(handler.activityInfo.packageName, handler.activityInfo.name);
+            }
+            // 名前で判断できないときは、DM らしくないものを候補として残す。
+            if (fallback == null && !name.contains("dm") && !name.contains("message") && !name.contains("direct")) {
+                fallback = handler;
+            }
+        }
+        return fallback == null ? null : new ComponentName(fallback.activityInfo.packageName, fallback.activityInfo.name);
     }
 
     /** どの activity-alias から起動されたかで共有先を決める。 */
